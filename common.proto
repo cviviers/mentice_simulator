@@ -1,0 +1,48 @@
+syntax = "proto3";
+package mentice.common.v1;
+
+// Vist coordinates: units cm
+// Y-axis is along the length of the patient with the direction from feet to head. 
+// X-axis points to the patient's left side.
+// Z-axis points in anterior direction
+// Coordinate system is right handed.
+// Origin at the lower back.
+
+message Vec2 {
+    float x = 1;
+    float y = 2;
+}
+
+message Vec3 {
+    float x = 1;
+    float y = 2;
+    float z = 3;
+}
+
+message Vec4 {
+    float x = 1;
+    float y = 2;
+    float z = 3;
+    float w = 4;
+}
+
+message Quaternion {
+    float x = 1;
+    float y = 2;
+    float z = 3;
+    float w = 4;
+}
+
+message Mat4x4f { // column major
+    repeated float values = 1;
+}
+
+message Image {
+    bytes data = 1;
+    int32 width = 2;
+    int32 height = 3;
+}
+
+message Header {
+    optional float frame_start_time = 1;
+}

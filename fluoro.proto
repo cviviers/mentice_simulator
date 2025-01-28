@@ -1,0 +1,147 @@
+syntax = "proto3";
+import "common.proto";
+package mentice.fluoro.v1;
+
+service Fluoro {
+    rpc GetFrameStream(GetFrameStreamRequest) returns (stream GetFrameStreamResponse) {}
+    
+    rpc SetXrayPedal(SetXrayPedalRequest) returns (SetXrayPedalResponse) {}
+    rpc GetXrayPedal(GetXrayPedalRequest) returns (GetXrayPedalResponse) {}
+    rpc GetXrayPedalStream(GetXrayPedalRequest) returns (stream GetXrayPedalResponse) {}
+    rpc SetCinePedal(SetCinePedalRequest) returns (SetCinePedalResponse) {}
+    rpc GetCinePedal(GetCinePedalRequest) returns (GetCinePedalResponse) {}
+    rpc GetCinePedalStream(GetCinePedalRequest) returns (stream GetCinePedalResponse) {}
+
+    rpc SetShutters(SetShuttersRequest) returns (SetShuttersResponse) {}
+    rpc GetShutters(GetShuttersRequest) returns (GetShuttersResponse) {}
+    rpc GetShuttersStream(GetShuttersRequest) returns (stream GetShuttersResponse) {}
+    rpc SetCollimators(SetCollimatorsRequest) returns (SetCollimatorsResponse) {}
+    rpc GetCollimators(GetCollimatorsRequest) returns (GetCollimatorsResponse) {}
+    rpc GetCollimatorsStream(GetCollimatorsRequest) returns (stream GetCollimatorsResponse) {}
+
+    rpc SetFrameRate(SetFrameRateRequest) returns (SetFrameRateResponse) {}
+    rpc GetFrameRate(GetFrameRateRequest) returns (GetFrameRateResponse) {}
+    rpc GetFrameRateStream(GetFrameRateRequest) returns (stream GetFrameRateResponse) {}
+
+    rpc GetRadiation(GetRadiationRequest) returns (GetRadiationResponse);
+    rpc GetRadiationStream(GetRadiationRequest) returns (stream GetRadiationResponse);
+}
+
+message GetFrameStreamRequest {
+    Plane plane = 1;
+}
+message GetFrameStreamResponse {
+    mentice.common.v1.Header header = 1;
+    Frame frame = 2;
+}
+
+message SetXrayPedalRequest {
+    bool down = 1;
+}
+message SetXrayPedalResponse {
+    mentice.common.v1.Header header = 1;
+}
+message GetXrayPedalRequest { }
+message GetXrayPedalResponse {
+    mentice.common.v1.Header header = 1;
+    bool down = 2;
+}
+
+message SetCinePedalRequest {
+    bool down = 1;
+}
+message SetCinePedalResponse {
+    mentice.common.v1.Header header = 1;
+}
+message GetCinePedalRequest { }
+message GetCinePedalResponse {
+    mentice.common.v1.Header header = 1;
+    bool down = 2;
+}
+
+message SetShuttersRequest {
+    Plane plane = 1;
+    float horizontal = 2; // Shutter values range from 0(open) to 1(closed).
+    float vertical = 3; // Shutter values range from 0(open) to 1(closed).
+}
+message SetShuttersResponse {
+    mentice.common.v1.Header header = 1;
+}
+message GetShuttersRequest {
+    Plane plane = 1;
+}
+message GetShuttersResponse {
+    mentice.common.v1.Header header = 1;
+    float horizontal = 2;
+    float vertical = 3;
+}
+
+// There is usually two collimators per carm
+message SetCollimatorsRequest {
+    Plane plane = 1;
+    Collimator left = 2;
+    Collimator right = 3;
+}
+message SetCollimatorsResponse {
+    mentice.common.v1.Header header = 1;
+}
+message GetCollimatorsRequest {
+    Plane plane = 1;
+}
+message GetCollimatorsResponse {
+    mentice.common.v1.Header header = 1;
+    Collimator left = 2;
+    Collimator right = 3;
+}
+
+message SetFrameRateRequest {
+    Mode mode = 1;
+    int32 frame_rate = 2; // framerate in FPS
+}
+message SetFrameRateResponse {
+    mentice.common.v1.Header header = 1;
+}
+message GetFrameRateRequest { 
+    Mode mode = 1;
+}
+message GetFrameRateResponse {
+    mentice.common.v1.Header header = 1;
+    int32 frame_rate = 2;
+}
+
+message GetRadiationRequest { }
+message GetRadiationResponse {
+    mentice.common.v1.Header header = 1;
+    float esd = 2;          // [mGy / min] Entrance Surface Dose
+    float irp_ak = 3;       // [mGy / min] Interventional Reference Point Air Kerma
+    float kap = 4;          // [mGy(cm)^2 / min] Kerma Area Product
+    float psd = 5;          // [mGy] Peak ESD
+    float irp_ak_accum = 6; // [mGy] IRP-AK accumulated
+    float kap_accum = 7;    // [mGy(cm)^2] KAP accumulated
+}
+
+enum Plane {
+    PLANE_UNDEFINED = 0;
+    MAIN = 1;
+    LATERAL = 2;
+}
+
+enum Mode {
+    MODE_UNDEFINED = 0;
+    XRAY = 1;
+    CINE = 2;
+}
+
+message Frame {
+    mentice.common.v1.Image image = 1;
+    float timestamp = 2; // simulation time in seconds
+    bool recording = 3;
+    int32 recorded_frame_count = 4; // When recording a cine loop it starts at 0 and increases every frame.
+    float dye_mass = 5;
+    float noise = 6; // a relative value [0,1] of how much noise is added
+}
+
+message Collimator {
+    float translation = 1; // Like the shutters, 0 translation represents open and 1 represent a fully inserted collimator.
+    float rotation = 2; // The collimators can rotatate and this angle is given in radians.
+}

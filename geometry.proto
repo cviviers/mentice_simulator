@@ -1,0 +1,157 @@
+syntax = "proto3";
+import "common.proto";
+import "fluoro.proto";
+package mentice.geometry.v1;
+
+service Geometry {
+    rpc SetTablePosition(SetTablePositionRequest) returns (SetTablePositionResponse) {} // [mm]
+    rpc GetTablePosition(GetTablePositionRequest) returns (GetTablePositionResponse) {}
+    rpc GetTablePositionStream(GetTablePositionRequest) returns (stream GetTablePositionResponse) {}
+
+    rpc SetTableRotation(SetTableRotationRequest) returns (SetTableRotationResponse) {} // euler angles in [rad]
+    rpc GetTableRotation(GetTableRotationRequest) returns (GetTableRotationResponse) {}
+    rpc GetTableRotationStream(GetTableRotationRequest) returns (stream GetTableRotationResponse) {}
+
+    rpc SetCarmRotation(SetCarmRotationRequest) returns (SetCarmRotationResponse) {} // needs index of the plane and angle in [rad]
+    rpc GetCarmRotation(GetCarmRotationRequest) returns (GetCarmRotationResponse) {}
+    rpc GetCarmRotationStream(GetCarmRotationRequest) returns (stream GetCarmRotationResponse) {}
+    
+    rpc SetDetectorRotation(SetDetectorRotationRequest) returns (SetDetectorRotationResponse) {} // [rad]
+    rpc GetDetectorRotation(GetDetectorRotationRequest) returns (GetDetectorRotationResponse) {}
+    rpc GetDetectorRotationStream(GetDetectorRotationRequest) returns (stream GetDetectorRotationResponse) {}
+
+    rpc SetZoom(SetZoomRequest) returns (SetZoomResponse) {} // dimensionless number
+    rpc GetZoom(GetZoomRequest) returns (GetZoomResponse) {}
+    rpc GetZoomStream(GetZoomRequest) returns (stream GetZoomResponse) {}
+
+    rpc SetSourceOffset(SetSourceOffsetRequest) returns (SetSourceOffsetResponse) {} // offset in [cm]
+    rpc GetSourceOffset(GetSourceOffsetRequest) returns (GetSourceOffsetResponse) {}
+    rpc GetSourceOffsetStream(GetSourceOffsetRequest) returns (stream GetSourceOffsetResponse) {}
+
+    rpc SetDetectorOffset(SetDetectorOffsetRequest) returns (SetDetectorOffsetResponse) {} // offset in [cm]
+    rpc GetDetectorOffset(GetDetectorOffsetRequest) returns (GetDetectorOffsetResponse) {}
+    rpc GetDetectorOffsetStream(GetDetectorOffsetRequest) returns (stream GetDetectorOffsetResponse) {}
+
+    rpc GetTransforms(GetTransformsRequest) returns (GetTransformsResponse) {}
+    rpc GetTransformsStream(GetTransformsRequest) returns (stream GetTransformsResponse) {}
+
+    rpc Set3dRATrajectory(Set3dRATrajectoryRequest) returns (Set3dRATrajectoryResponse) {}
+}
+
+message SetTablePositionRequest {
+    mentice.common.v1.Vec3 value = 1;
+}
+message SetTablePositionResponse {
+    mentice.common.v1.Header header = 1;
+}
+message GetTablePositionRequest { }
+message GetTablePositionResponse {
+    mentice.common.v1.Header header = 1;
+    mentice.common.v1.Vec3 value = 2;
+}
+
+message SetTableRotationRequest {
+    mentice.common.v1.Vec3 value = 1;
+}
+message SetTableRotationResponse {
+    mentice.common.v1.Header header = 1;
+}
+message GetTableRotationRequest { }
+message GetTableRotationResponse {
+    mentice.common.v1.Header header = 1;
+    mentice.common.v1.Vec3 value = 2;
+}
+
+message SetCarmRotationRequest {
+    mentice.fluoro.v1.Plane plane = 1;
+    mentice.common.v1.Vec3 value = 2;
+}
+message SetCarmRotationResponse {
+    mentice.common.v1.Header header = 1;
+}
+message GetCarmRotationRequest {
+    mentice.fluoro.v1.Plane plane = 1;
+}
+message GetCarmRotationResponse {
+    mentice.common.v1.Header header = 1;
+    mentice.common.v1.Vec3 value = 2;
+}
+
+message SetDetectorRotationRequest {
+    mentice.fluoro.v1.Plane plane = 1;
+    float value = 2;
+}
+message SetDetectorRotationResponse {
+    mentice.common.v1.Header header = 1;
+}
+message GetDetectorRotationRequest {
+    mentice.fluoro.v1.Plane plane = 1;
+}
+message GetDetectorRotationResponse {
+    mentice.common.v1.Header header = 1;
+    float value = 2;
+}
+
+message SetZoomRequest {
+    mentice.fluoro.v1.Plane plane = 1;
+    float value = 2;
+}
+message SetZoomResponse {
+    mentice.common.v1.Header header = 1;
+}
+message GetZoomRequest {
+    mentice.fluoro.v1.Plane plane = 1;
+}
+message GetZoomResponse {
+    mentice.common.v1.Header header = 1;
+    float value = 2;
+}
+
+message SetSourceOffsetRequest {
+    float offset = 1;
+}
+message SetSourceOffsetResponse {
+    mentice.common.v1.Header header = 1;
+}
+message GetSourceOffsetRequest { }
+message GetSourceOffsetResponse {
+    mentice.common.v1.Header header = 1;
+    float offset = 2;
+}
+
+message SetDetectorOffsetRequest {
+    mentice.fluoro.v1.Plane plane = 1;
+    float offset = 2;
+}
+message SetDetectorOffsetResponse {
+    mentice.common.v1.Header header = 1;
+}
+message GetDetectorOffsetRequest {
+    mentice.fluoro.v1.Plane plane = 1;
+}
+message GetDetectorOffsetResponse {
+    mentice.common.v1.Header header = 1;
+    float offset = 2;
+}
+
+message GetTransformsRequest {
+    mentice.fluoro.v1.Plane plane = 1;
+}
+message GetTransformsResponse {
+    mentice.common.v1.Header header = 1;
+    mentice.common.v1.Mat4x4f table = 2; // from patient fix to global table fix CS
+    mentice.common.v1.Mat4x4f model_view = 3; // from patient fix to camera centred CS
+    mentice.common.v1.Mat4x4f projection = 4; // from camera centred to openGL pixel space
+    // openGL pixel space: if pd=projection_distortion bottom right is (-pd,-pd) top left is (pd,pd)
+}
+
+message Set3dRATrajectoryRequest {
+    repeated Position3dRA positions = 1; // on next pedal press after each image view will move to next position
+}
+message Set3dRATrajectoryResponse {
+    mentice.common.v1.Header header = 1;
+}
+
+message Position3dRA {
+    mentice.common.v1.Vec3 carm_rotation = 1;
+}

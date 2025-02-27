@@ -1,0 +1,378 @@
+syntax = "proto3";
+
+package mentice_philips;
+
+service API {
+    rpc GetSystemState(GetSystemStateRequest) returns (GetSystemStateReply);
+
+    //Xray rpcs
+    rpc SetXrayPedal(SetXrayPedalRequest) returns (SetXrayPedalReply);
+    rpc SetCinePedal(SetCinePedalRequest) returns (SetCinePedalReply);
+    rpc XrayPedalStream(XrayPedalStreamRequest) returns (stream XrayPedalStreamReply);
+    rpc CinePedalStream(CinePedalStreamRequest) returns (stream CinePedalStreamReply);
+    rpc SetShutters(SetShuttersRequest) returns (SetShuttersReply);
+    rpc SetCollimators(SetCollimatorsRequest) returns (SetCollimatorsReply);
+    rpc XrayStream(XrayStreamRequest) returns (stream XrayStreamReply);
+    rpc GetRadiation(GetRadiationRequest) returns (GetRadiationReply);
+    rpc GetRadiationStream(GetRadiationRequest) returns (stream GetRadiationReply);
+    rpc SetFrameRate(SetFrameRateRequest) returns (SetFrameRateReply);
+
+    // Geometry rpcs
+    rpc SetTablePosition(SetTablePositionRequest) returns (SetTablePositionReply);
+    rpc SetCarmRotation(SetCarmRotationRequest) returns (SetCarmRotationReply);
+    rpc SetDetectorOffset(SetDetectorOffsetRequest) returns (SetDetectorOffsetReply);
+    rpc SetDetectorRotation(SetDetectorRotationRequest) returns (SetDetectorRotationReply);
+    rpc SetZoom(SetZoomRequest) returns (SetZoomReply) {}
+
+    // Device rpcs
+    rpc GetProductSet(GetProductSetRequest) returns (GetProductSetReply);
+    rpc PublishDevice(PublishDeviceRequest) returns (PublishDeviceReply);
+    rpc GetPublishedDevices(GetPublishedDevicesRequest) returns (GetPublishedDevicesReply);
+    rpc DevicePublishedStream(DevicePublishedStreamRequest) returns (stream DevicePublishedStreamReply);
+    rpc DeviceRemovedStream(DeviceRemovedStreamRequest) returns (stream DeviceRemovedStreamReply);
+    rpc MoveDevice(MoveDeviceRequest) returns (MoveDeviceReply);
+    rpc SetContrastFlow(SetContrastFlowRequest) returns (SetContrastFlowReply);
+    rpc ContrastFlowStream(ContrastFlowStreamRequest) returns (stream ContrastFlowStreamReply);
+    rpc SetBalloonPressure(SetBalloonPressureRequest) returns (SetBalloonPressureReply) {}
+    rpc GetBalloonPressure(GetBalloonPressureRequest) returns (GetBalloonPressureReply) {}
+    rpc GetBalloonPressureStream(GetBalloonPressureRequest) returns (stream GetBalloonPressureReply) {}
+    rpc LoadState(LoadStateRequest) returns (LoadStateReply) {}
+    rpc SaveState(SaveStateRequest) returns (SaveStateReply) {}
+    rpc GetSavedStates(GetSavedStatesRequest) returns (GetSavedStatesReply) {}
+
+    // Vist Process rpcs
+    rpc ListCases(ListCasesRequest) returns (ListCasesReply);
+    rpc StartCase(StartCaseRequest) returns (StartCaseReply);
+    rpc ExitVist(ExitVistRequest) returns (ExitVistReply); // gracefully terminate
+    rpc KillVist(KillVistRequest) returns (KillVistReply); // try gracefully, if fail force terminate
+}
+
+message GetSystemStateRequest { Plane plane = 1; }
+message GetSystemStateReply {
+    Status status = 1;
+    SystemState system_state = 2;
+}
+message SetXrayPedalRequest { bool down = 1; }
+message SetXrayPedalReply { Status status = 1; }
+message SetCinePedalRequest { bool down = 1; }
+message SetCinePedalReply { Status status = 1; }
+message XrayPedalStreamRequest { }
+message XrayPedalStreamReply {
+    Status status = 1;
+    bool down = 2;
+}
+message CinePedalStreamRequest { }
+message CinePedalStreamReply {
+    Status status = 1;
+    bool down = 2;
+}
+message SetShuttersRequest {
+    Plane plane = 1;
+    Shutters shutters = 2;
+}
+message SetShuttersReply { Status status = 1; }
+message SetCollimatorsRequest {
+    Plane plane = 1;
+    Collimators collimators = 2;
+}
+message SetCollimatorsReply { Status status = 1; }
+message XrayStreamRequest { Plane plane = 1; }
+message XrayStreamReply {
+    Status status = 1;
+    ImageData xray = 2;
+    SystemState system_state = 3; // synchronized with xray
+}
+message GetRadiationRequest { }
+message GetRadiationReply {
+    float esd = 1;          // [mGy / min] Entrance Surface Dose
+    float irp_ak = 2;       // [mGy / min] Interventional Reference Point Air Kerma
+    float kap = 3;          // [mGy(cm)^2 / min] Kerma Area Product
+    float psd = 4;          // [mGy] Peak ESD
+    float irp_ak_accum = 5; // [mGy] IRP-AK accumulated
+    float kap_accum = 6;    // [mGy(cm)^2] KAP accumulated
+}
+message SetFrameRateRequest {
+    XrayMode mode = 1;
+    int32 framerate = 2;
+}
+message SetFrameRateReply { }
+message SetTablePositionRequest {
+    Pos3f position = 1; // [cm] GLOBAL_COORDINATE_SYSTEM
+}
+message SetTablePositionReply { Status status = 1; }
+message SetCarmRotationRequest {
+    Plane plane = 1;
+    CarmAngulation angulation = 2;
+}
+message SetCarmRotationReply { Status status = 1; }
+message SetDetectorOffsetRequest {
+    // moves detector
+    Plane plane = 1;
+    float distance = 2; // [cm] detector distance from isocentre
+}
+message SetDetectorOffsetReply { Status status = 1; }
+message SetDetectorRotationRequest { 
+    Plane plane = 1;
+    float rotation = 2; // [rad] CW seen from detector, range [0, pi/2]
+}
+message SetDetectorRotationReply { Status status = 1; }
+message GetProductSetRequest { }
+message GetProductSetReply {
+    Status status = 1;
+    repeated ToolId products = 2;
+}
+message SetZoomRequest {
+    Plane plane = 1;
+    float value = 2; // dimensionless number
+}
+message SetZoomReply {
+    Status status = 1;
+}
+message PublishDeviceRequest { ToolId tool_id = 1; }
+message PublishDeviceReply {
+    Status status = 1;
+    int32 unique_id = 2;
+}
+message GetPublishedDevicesRequest { }
+message GetPublishedDevicesReply {
+    Status status = 1;
+    repeated DeviceInfo devices = 2;
+}
+message DevicePublishedStreamRequest { }
+message DevicePublishedStreamReply { DeviceInfo device = 1; }
+message DeviceRemovedStreamRequest { }
+message DeviceRemovedStreamReply { DeviceInfo device = 1; }
+message MoveDeviceRequest {
+    int32 unique_id = 1;
+    float translation = 2; // [cm] insertion along path
+    float rotation = 3; // [radians] left-handed rotation along translation axis
+    // use incremental values if true, absolute if false
+    bool use_incremental_translation = 4; // use incremental insertion, added to current translation
+    bool use_incremental_rotation = 5; // use incremental rotation, added to current rotation
+    // if speeds are too high in relation to magnitude of translation/rotation, the simulation will set a speed
+    // if speeds are 0, simulation will set the highest suitable speed depending on translation/rotation magnitude
+    float speed = 6; // [cm/s] magnitude of velocity along translation curve
+    float angular_speed = 7; // [radians/s] magnitude of angularVelocity along translation axis
+}
+message MoveDeviceReply { Status status = 1; }
+message SetContrastFlowRequest {
+    int32 unique_id = 1;
+    float flow = 2; // [ml/s]
+}
+message SetContrastFlowReply { }
+message ContrastFlowStreamRequest { int32 unique_id = 1; }
+message ContrastFlowStreamReply {
+    float flow = 1; // [ml/s]
+}
+message SetBalloonPressureRequest {
+    int32 unique_id = 1;
+    float pressure = 2; // [atm]
+}
+message SetBalloonPressureReply { }
+message GetBalloonPressureRequest { int32 unique_id = 1; }
+message GetBalloonPressureReply {
+    float pressure = 1; // [atm]
+}
+message LoadStateRequest { string tag = 1; } // tag from GetSavedStates
+message LoadStateReply { }
+message SaveStateRequest { string name = 1; }
+message SaveStateReply { }
+message GetSavedStatesRequest { }
+message GetSavedStatesReply { repeated StateInfo states = 1; }
+message ListCasesRequest {
+    string vist_packages_path = 1; // optional, if empty will look for it in some locations, usually will default to C:/Program Files (x86)/Mentice AB/Packages
+}
+message ListCasesReply { repeated CaseInfo cases = 1; } // lists all available packages in vist_packages_path
+message StartCaseRequest { CaseInfo case_info = 1; }
+message StartCaseReply { Status status = 1; }
+message ExitVistRequest { }
+message ExitVistReply { Status status = 1; }
+message KillVistRequest { }
+message KillVistReply { Status status = 1; }
+
+message Status {
+    int32 code = 1;
+    string message = 2;
+}
+
+enum Plane {
+    UNDEFINED = 0;
+    MAIN = 1;
+    LATERAL = 2;
+}
+
+enum XrayMode {
+    MODE_UNDEFINED = 0;
+    XRAY = 1;
+    CINE = 2;
+}
+
+message XraySettings {
+    XrayModeSettings xray = 1;
+    XrayModeSettings cine = 2;
+}
+
+message XrayModeSettings {
+    int32 framerate = 1;
+}
+
+message ImageData {
+    uint64 time_stamp = 1; // [milliseconds] from epoch (C++ std::chrono::high_resolution_clock)
+    uint32 frame_number = 2; // first frame is 0
+    Image image = 3;
+    Rect_uint32 valid_rectangle = 4; //Valid rectangle in pixel coordinates (i.e. the area containing image data).
+    XrayMode mode = 5;
+}
+
+message Image {
+    uint32 width = 1;
+    uint32 height = 2;
+    uint32 bit_depth = 3;
+    ColorType color_type = 4;
+    bytes pixels = 5; // row major, starting top left
+}
+
+enum ColorType {
+    UNDEFINE = 0;
+    GREY = 1;
+}
+
+message Rect_uint32 {
+    uint32 top = 1;
+    uint32 bottom = 2;
+    uint32 left = 3;
+    uint32 right = 4;
+}
+
+message Shutters {
+    // range [0(open), 1(closed)]
+    float horizontal = 1;
+    float vertical = 2;
+}
+
+message Collimators {
+    message Collimator {
+        float translation = 1; // range [0(open), 1(closed)]
+        float rotation = 2; // [rad] CW seen from above table, range [-pi/2, pi/2]
+    }
+
+    Collimator left = 1;
+    Collimator right = 2;
+}
+
+message SystemState {
+    float target_fps = 1;   // LEGACY, frame rate for current XrayMode only with XrayStream
+                            //      same as XrayModeSettings::framerate for current mode (xray/cine)
+    Shutters shutters = 2;
+    Collimators collimators = 3;
+    Geometry geometry = 4;
+    repeated DeviceState devices = 5; // one or more connected components which can be controlled
+    XraySettings xray_settings = 6;
+    uint64 time_stamp = 7; // [milliseconds] from epoch (C++ std::chrono::high_resolution_clock)
+    repeated Component device_components = 8; // all device components which may or may not be controllable
+}
+
+message ToolId {
+    string manufacturer = 1;
+    string product = 2;
+    string id = 3;
+    string type = 4; // not needed for SelectDevice, example 'type_035_wire'
+}
+
+message ProductSet {
+    repeated ToolId products = 1;
+}
+
+message DeviceInfo {
+    int32 unique_id = 1;
+    ToolId tool_id = 2;
+    bool can_inject_contrast = 3;
+}
+
+message DeviceState {
+    int32 unique_id = 1;
+    float translation = 2; // [cm] absolute insertion along path
+    float rotation = 3; // [radians] left-handed absolute rotation along translation axis
+    DeviceShape shape = 4;
+    float velocity = 5; // [cm/s] signed velocity in translation direction
+    float angular_velocity = 6; // [radians/s] signed angular velocity of rotation
+}
+
+message DeviceShape {
+    repeated DeviceControlPoint points = 1; // first index is tip
+}
+
+message DeviceControlPoint {
+    Pos3f position = 1; // [cm] PATIENTFIX_COORDINATE_SYSTEM
+    float rel_position = 2; // [cm] curve distance from base
+    float radius = 3; // [cm]
+}
+
+message Component { // such as stents, balloons, markers, etc
+    // Connected components has the same tool_id and unique_id
+    int32 unique_id = 1; // -1 if device has no unique id
+    ToolId tool_id = 2;
+    string portal_id = 3; // the portal is the access point, radial/femoral
+    string name = 4; // non unique
+    DeviceShape shape = 5;
+}
+
+message Geometry {
+    Pos3f table_pos = 1; // [cm] GLOBAL_COORDINATE_SYSTEM
+    Carm carm = 2;
+    Transforms transforms = 3;
+}
+
+message Carm {
+    CarmAngulation angulation = 1;
+    float source_offset = 2; // [cm] distance between source and isocentre, doesn't change
+    float detector_offset = 3; // [cm] distance between detector and isocentre
+    float detector_rotation = 4; // [rad] CW seen from detector, range [0, pi/2]
+    float zoom = 5; // dimensionless number
+}
+
+message CarmAngulation {
+    // rotation directions and axes defined from initial state
+    float cranial = 1; // [rad] positive in cranial direction, range [-pi/4, pi/4]
+    float anterior = 2; // [rad] positive in LAO (left anterior oblique) direction, range [-pi/2, pi/2]
+    float vertical_axis = 3; // [rad] CW seen from detector
+}
+
+message Transforms {
+    Mat4x4f table = 1; // from PATIENTFIX_COORDINATE_SYSTEM to GLOBAL_COORDINATE_SYSTEM
+    Mat4x4f model_view = 2; // from PATIENTFIX_COORDINATE_SYSTEM to camera centred CS
+    Mat4x4f projection = 3; // from camera centred to OPENGL_PIXELSPACE
+}
+
+message Mat4x4f { // column major
+    repeated float values = 1;
+}
+
+// GLOBAL_COORDINATE_SYSTEM:
+//      origo: isocentre (rotational center) of C-arms
+//      [x, y, z]: positive in directions [patient_left, cranial, ventral]
+// PATIENTFIX_COORDINATE_SYSTEM:
+//      origo: patient fix, usually close to heart
+//      [x, y, z]: positive in directions [patient_left, cranial, ventral]
+// OPENGL_PIXELSPACE:
+//      if pd=projection_distortion bottom right is (-pd,-pd) top left is (pd,pd)
+//      origo: middle of screen
+//      [x, y, z]: positive in directions [image left, image up, camera direction]
+message Pos3f {
+    float x = 1;
+    float y = 2;
+    float z = 3;
+}
+
+message CaseInfo {
+    int32 id = 1;
+    string name = 2; // not used for request
+    string package_id = 3; // not used for request, short name
+    string package_name = 4; // not used for request, long name with commit hash and version number
+    string package_path = 5; // usually "C:/Program Files (x86)/Mentice AB/Packages/<module_name>"
+}
+
+message StateInfo {
+    string tag = 1; // unique, only set by VIST, used for loading
+    string name = 2; // not used for loading
+}

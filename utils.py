@@ -1,8 +1,9 @@
 import os
 import cv2
 import numpy as np
+import mentice.mentice.common.v1 as common
 
-def save_image(image_data, image_width, image_height, frame_number, output_dir="fluoroscopy_images", timestamp=None):
+def save_image(image_data, image_width, image_height, frame_number, output_dir="fluoroscopy_images", timestamp=None, orientation=None):
     """Saves image data as a PNG file."""
     image_np = np.frombuffer(image_data, dtype=np.uint8)
     image_np = image_np.reshape((image_height, image_width))
@@ -12,7 +13,10 @@ def save_image(image_data, image_width, image_height, frame_number, output_dir="
     image = image_np
     if image is not None:
         if timestamp:
-            filename = os.path.join(output_dir, f"frame_{frame_number:04d}_{timestamp}.png")
+            if orientation:
+                filename = os.path.join(output_dir, f"frame_{frame_number:04d}_{timestamp}_{orientation}.png")
+            else:
+                filename = os.path.join(output_dir, f"frame_{frame_number:04d}_{timestamp}.png")
         else:
             filename = os.path.join(output_dir, f"frame_{frame_number:04d}.png")
         cv2.imwrite(filename, image)

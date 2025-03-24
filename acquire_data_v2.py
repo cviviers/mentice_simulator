@@ -45,7 +45,7 @@ def save_data(frame, geo_data, fluoro_data, frame_number, orientation=None):
     print(f"Saved: {filename}")
 
 
-async def capture_images(duration=5, interval=0.05, single_frame=True):
+async def capture_images(duration=5, interval=0.05, single_frame=True, orientation=common.Vec3()) -> None:
     """
     Continuously capture images from `fluoro_service` for `duration` seconds,
     polling every `interval` seconds, and fetch geometry data from `geo_service`.
@@ -111,12 +111,13 @@ async def capture_images(duration=5, interval=0.05, single_frame=True):
                     current_frame.frame.image,
                     geo_data,
                     fluoro_data,
-                    frame_number
-                    # add more fields as needed...
+                    frame_number,
+                    orientation
+                    
                 )
+            
             )
-            if single_frame:
-                break
+        
             frame_number += 1
         else:
             # If we're out of frames, break the loop
@@ -130,7 +131,9 @@ async def capture_images(duration=5, interval=0.05, single_frame=True):
         if time.time() - start_time >= duration:
             break
 
-
+    if single_frame:
+        # only keep last image
+        buffer = buffer[-1:]
     print("Saving data...")
     for data in buffer:
         save_data(*data)
@@ -320,8 +323,8 @@ async def rotate_carm(
                 )
 
 
-                # await capture_images_data_one_at_a_time(2, orientation=common.Vec3(x=roll, y=prop, z=zarm))
-                await capture_single_image(orientation=common.Vec3(x=roll, y=prop, z=zarm))
+                await capture_images(duration=1, interval=0.05, single_frame=True, orientation=common.Vec3(x=roll, y=prop, z=zarm))
+                # await capture_single_image(orientation=common.Vec3(x=roll, y=prop, z=zarm))
 
                 await asyncio.sleep(time_per_step)
 

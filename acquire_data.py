@@ -37,6 +37,7 @@ def save_data(frame, geo_data, fluoro_data, frame_number, orientation=None):
 
     # create a json file with the geo and fluoro data
     timestamp = time.time()
+    os.makedirs(os.path.join(OUTPUT_DIR, "json"), exist_ok=True)
     filename = os.path.join(OUTPUT_DIR, "json", f"frame_{frame_number:04d}_{timestamp}.json")
     with open(filename, "w") as f:
         f.write(json.dumps({"frame_number": frame_number, "timestamp": timestamp, "geo_data": geo_data, "fluoro_data": fluoro_data, "orientation": orientation.to_json()}))
